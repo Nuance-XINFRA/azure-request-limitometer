@@ -1,8 +1,2 @@
-*
-!*/
-!*.go
-!*.sh
-!Dockerfile
-!.gitlab-ci.yml
-!.gitignore
-.\#*
+.vscode/
+vendor/
