@@ -1,5 +1,7 @@
 # Azure Request Limitometer
 
+[![Build Status](https://travis-ci.org/Nuance-Mobility/azure-request-limitometer.svg?branch=master)](https://travis-ci.org/Nuance-Mobility/azure-request-limitometer)
+
 **NOTE: This software is provided AS IS.**
 
 This program makes requests to the Azure Resource Manager API in order to get the headers of the 
