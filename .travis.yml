@@ -1,0 +1,9 @@
+sudo: required
+
+services:
+  - docker
+
+jobs:
+  include:
+  - stage: build
+    script: docker build -t nuancemobility/azure-request-limitometer:${TRAVIS_COMMIT} -f Dockerfile .
