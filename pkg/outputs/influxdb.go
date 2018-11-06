@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/influxdata/influxdb/client/v2"
 )
 
@@ -36,7 +35,7 @@ func WriteOutputInflux(values map[string]int, fieldName string) {
 		Addr: fmt.Sprintf("http://%s:%s", s.Host, s.Port),
 	})
 	if err != nil {
-		glog.Fatal(err)
+		log.Fatalf("failed to create new HTTP client: %v", err)
 	}
 	defer c.Close()
 
@@ -45,7 +44,7 @@ func WriteOutputInflux(values map[string]int, fieldName string) {
 		Precision: "s",
 	})
 	if err != nil {
-		glog.Fatal(err)
+		log.Fatalf("failed to create new batch points: %v", err)
 	}
 
 	for k, v := range values {
@@ -62,8 +61,8 @@ func WriteOutputInflux(values map[string]int, fieldName string) {
 	}
 
 	if err := c.Write(bp); err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 
-	glog.Info("Successfully wrote to InfluxDB")
+	log.Println("Successfully wrote to InfluxDB")
 }

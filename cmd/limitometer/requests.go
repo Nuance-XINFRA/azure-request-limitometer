@@ -1,13 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/golang/glog"
 )
 
 // Example Request Headers:
@@ -29,7 +29,7 @@ func getRequestsRemaining(nodename string) (requestsRemaining map[string]int) {
 
 	for _, response := range responses {
 		if response.StatusCode != 200 {
-			glog.Fatalf("Response did not return a StatusCode of 200. Check HTTP_PROXY. StatusCode: %d", response.StatusCode)
+			log.Fatalf("Response did not return a StatusCode of 200. StatusCode: %d", response.StatusCode)
 		}
 		for k, v := range extractRequestsRemaining(response.Header) {
 			requestsRemaining[k] = v
@@ -47,13 +47,13 @@ func extractRequestsRemaining(h http.Header) (requestsRemaining map[string]int) 
 	for _, field := range headerSubfields {
 		matches := expectedHeaderFormat.FindStringSubmatch(field)
 		if !(len(matches) == 3) {
-			glog.Errorf("header didn't contain expected data: %s", field)
+			log.Fatalf("header didn't contain expected data: %s", field)
 		}
 
 		requestType := matches[1]
 		requestsLeft, err := strconv.Atoi(matches[2])
 		if err != nil {
-			glog.Error(err)
+			log.Fatal(err)
 		}
 		requestsRemaining[requestType] = requestsLeft
 	}
