@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,13 +10,13 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/golang/glog"
 )
 
 // AzureClient This is an authorized client for Azure communication.
 type AzureClient struct {
 	compute.VirtualMachinesClient
 	compute.DisksClient
+	compute.VirtualMachineScaleSetsClient
 }
 
 // NewClient Initialized an authorized Azure client
@@ -23,49 +24,52 @@ func NewClient(config Config) (client AzureClient) {
 	client = AzureClient{
 		compute.NewVirtualMachinesClient(config.SubscriptionID),
 		compute.NewDisksClient(config.SubscriptionID),
+		compute.NewVirtualMachineScaleSetsClient(config.SubscriptionID),
 	}
 
+	// Authorizing with Managed Service Identity
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
-	if err != nil {
-		glog.Fatalf("Unable to authorize the client. Reporting Error: %s", err)
+	if err == nil {
+		client.VirtualMachinesClient.Authorizer = authorizer
+		client.DisksClient.Authorizer = authorizer
+		client.VirtualMachineScaleSetsClient.Authorizer = authorizer
 	}
-
-	client.VirtualMachinesClient.Authorizer = authorizer
-	client.DisksClient.Authorizer = authorizer
 
 	client.VirtualMachinesClient.RetryAttempts = 1
 	client.DisksClient.RetryAttempts = 1
+	client.VirtualMachineScaleSetsClient.RetryAttempts = 1
 
 	return
 }
 
 // GetVM Returns a VirtualMachine object.
-func (c AzureClient) GetVM(vmname string) compute.VirtualMachine {
+func (c AzureClient) GetVM(vmname string) (vm compute.VirtualMachine) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 
 	vm, err := c.VirtualMachinesClient.Get(ctx, Conf.ResourceGroup, vmname, compute.InstanceView)
 	if err != nil {
-		glog.Fatalf("failed to get VM; check HTTP_PROXY: %v", err)
+		log.Panicf("failed to get VM: %v", err)
 	}
-	return vm
+
+	return
 }
 
 // GetAllVM Returns a ListResultPage of all VMs in the ResourceGroup of the Config
-func (c AzureClient) GetAllVM() compute.VirtualMachineListResultPage {
+func (c AzureClient) GetAllVM() (result compute.VirtualMachineListResultPage) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 
 	result, err := c.VirtualMachinesClient.List(ctx, Conf.ResourceGroup)
 	if err != nil {
-		glog.Fatalf("failed to get all VMs; check HTTP_PROXY: %v", err)
+		log.Panicf("failed to get all VMs: %v", err)
 	}
 
-	return result
+	return
 }
 
 // PutVM returns the Virtual Machine object
-func (c AzureClient) PutVM(vmname string) autorest.Response {
+func (c AzureClient) PutVM(vmname string) (res autorest.Response) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 
@@ -74,15 +78,17 @@ func (c AzureClient) PutVM(vmname string) autorest.Response {
 	req, err := c.VirtualMachinesClient.CreateOrUpdatePreparer(ctx, Conf.ResourceGroup, vmname, node)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		log.Panic(err)
 	}
 
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(c.VirtualMachinesClient, req,
+	var result *http.Response
+	result, err = autorest.SendWithSender(c.VirtualMachinesClient, req,
 		azure.DoRetryWithRegistration(c.VirtualMachinesClient.Client))
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(result, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
 	if err != nil {
-		glog.Fatal(err)
+		log.Panic(err)
 	}
+	res.Response = result
 
-	return autorest.Response{resp}
+	return
 }
