@@ -1,13 +1,12 @@
 sudo: required
-
 services:
-  - docker
-
+- docker
 stages:
-  - build
-
+- build
 jobs:
   include:
   - stage: build
-    name: "Build"
-    script: docker build -t nuancemobility/azure-request-limitometer:${TRAVIS_COMMIT} -f Dockerfile .
+    name: Build
+    script:
+    - docker build -t nuancemobility/azure-request-limitometer:${TRAVIS_COMMIT} -f
+      Dockerfile .

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/compute/mgmt/compute"
@@ -22,12 +23,16 @@ type AzureClient struct {
 // NewClient Initialized an authorized Azure client
 func NewClient(config Config) (client AzureClient) {
 	client = AzureClient{
-		compute.NewVirtualMachinesClient(config.SubscriptionID),
-		compute.NewDisksClient(config.SubscriptionID),
-		compute.NewVirtualMachineScaleSetsClient(config.SubscriptionID),
+		compute.NewVirtualMachinesClientWithBaseURI(config.EnvironmentEndpoint, config.SubscriptionID),
+		compute.NewDisksClientWithBaseURI(config.EnvironmentEndpoint, config.SubscriptionID),
+		compute.NewVirtualMachineScaleSetsClientWithBaseURI(config.EnvironmentEndpoint, config.SubscriptionID),
 	}
 
 	// Authorizing with Managed Service Identity
+	err := os.Setenv("AZURE_ENVIRONMENT", config.AzureEnvironment)
+	if err != nil {
+		log.Panicf("Unable to set Azure environment: %v", err)
+	}
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err == nil {
 		client.VirtualMachinesClient.Authorizer = authorizer
