@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/Nuance-Mobility/azure-request-limitometer/pkg/common"
 	"github.com/Nuance-Mobility/azure-request-limitometer/pkg/outputs"
+	"github.com/golang/glog"
 
 	flag "github.com/spf13/pflag"
 )
@@ -22,7 +24,7 @@ var azureClient = common.Client
 
 var (
 	nodename = flag.String("node", "", "Valid node in the resource group to create compute queries. Environment Variable: NODE_NAME")
-	target   = flag.String("output", "influxdb", "Target output for the limitometer")
+	target   = flag.String("output", "pushgateway", "Target output for the limitometer")
 )
 
 func printUsage() {
@@ -58,5 +60,11 @@ func main() {
 	requestsRemaining := getRequestsRemaining(*nodename)
 
 	log.Printf("Writing to database: %s", *target)
-	outputs.WriteOutputInflux(requestsRemaining, "requestRemaining")
+	if strings.ToLower(*target) == "influxdb" {
+		outputs.WriteOutputInflux(requestsRemaining, "requestRemaining")
+	} else if strings.ToLower(*target) == "pushgateway" {
+		outputs.WriteOutputPushGateway(requestsRemaining)
+	} else {
+		glog.Exit("Did not provide a output through -output flag. Exiting.")
+	}
 }

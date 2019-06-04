@@ -16,7 +16,7 @@ import (
 // 'x-ms-ratelimit-remaining-resource': 'Microsoft.Compute/PutVM3Min;740,Microsoft.Compute/PutVM30Min;3695'
 
 var expectedHeaderField = "X-Ms-Ratelimit-Remaining-Resource"
-var expectedHeaderFormat = regexp.MustCompile(`(Microsoft.Compute/\w+);(\d+)`)
+var expectedHeaderFormat = regexp.MustCompile(`(Microsoft.\w+\/\w+);(\d+)`)
 
 func getRequestsRemaining(nodename string) (requestsRemaining map[string]int) {
 	requestsRemaining = make(map[string]int)
@@ -25,6 +25,9 @@ func getRequestsRemaining(nodename string) (requestsRemaining map[string]int) {
 		azureClient.GetVM(nodename).Response,
 		azureClient.GetAllVM().Response().Response,
 		azureClient.PutVM(nodename),
+		azureClient.GetNic(nodename).Response,
+		azureClient.GetAllNics().Response().Response,
+		azureClient.PutNic(nodename),
 	}
 
 	for _, response := range responses {
