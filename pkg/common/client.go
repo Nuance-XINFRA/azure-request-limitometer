@@ -140,7 +140,7 @@ func (c AzureClient) PutNic(vmName string) autorest.Response {
 
 	nicName := c.getNicNameFromVMName(vmName)
 
-	nic := c.GetNic(nicName)
+	nic := c.GetNic(vmName)
 
 	req, err := c.InterfacesClient.CreateOrUpdatePreparer(ctx, Conf.ResourceGroup, nicName, nic)
 	if err != nil {
