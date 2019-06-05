@@ -106,14 +106,26 @@ func (c AzureClient) PutVM(vmname string) (res autorest.Response) {
 	return
 }
 
-// GetNic Returns a Nic object.
-func (c AzureClient) GetNic(vmName string) network.Interface {
+// GetNicFromVMName returns primary nic object based on vm name
+func (c AzureClient) GetNicFromVMName(vmName string) network.Interface {
+	return c.getNic(vmName, true)
+}
+
+// GetNicFromNicName returns nic object based on nic name
+func (c AzureClient) GetNicFromNicName(nicName string) network.Interface {
+	return c.getNic(nicName, false)
+}
+
+// Returns a Nic object.
+func (c AzureClient) getNic(resource string, vmResource bool) network.Interface {
 	ctx, cancel := context.WithTimeout(context.Background(), 6000*time.Second)
 	defer cancel()
 
-	nicName := c.getNicNameFromVMName(vmName)
+	if vmResource {
+		resource = c.getNicNameFromVMName(resource)
+	}
 
-	nic, err := c.InterfacesClient.Get(ctx, Conf.ResourceGroup, nicName, "")
+	nic, err := c.InterfacesClient.Get(ctx, Conf.ResourceGroup, resource, "")
 	if err != nil {
 		glog.Fatalf("failed to get Nic: %v", err)
 	}
@@ -140,7 +152,7 @@ func (c AzureClient) PutNic(vmName string) autorest.Response {
 
 	nicName := c.getNicNameFromVMName(vmName)
 
-	nic := c.GetNic(vmName)
+	nic := c.GetNicFromNicName(nicName)
 
 	req, err := c.InterfacesClient.CreateOrUpdatePreparer(ctx, Conf.ResourceGroup, nicName, nic)
 	if err != nil {
