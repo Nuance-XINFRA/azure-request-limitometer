@@ -19,7 +19,7 @@ import (
 var expectedHeaderField = "X-Ms-Ratelimit-Remaining-Resource"
 var expectedHeaderFormat = regexp.MustCompile(`(Microsoft.\w+\/\w+);(\d+)`)
 var expectedSubIDReadsHeaderField = "X-Ms-Ratelimit-Remaining-Subscription-Reads"
-var subIDReadsHeader = "SubID_Reads_Remaining"
+var subIDReadsHeader = "SubIDReads"
 
 func getRequestsRemaining(nodename string) (requestsRemaining map[string]int) {
 	requestsRemaining = make(map[string]int)

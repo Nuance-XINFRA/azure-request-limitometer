@@ -24,7 +24,7 @@ var azureClient = common.Client
 
 var (
 	nodename = flag.String("node", "", "Valid node in the resource group to create compute queries. Environment Variable: NODE_NAME")
-	target   = flag.String("output", "pushgateway", "Target output for the limitometer")
+	target   = flag.String("output", "pushgateway", "Target output for the limitometer, supported values are: [influxdb|pushgateway]")
 )
 
 func printUsage() {

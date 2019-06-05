@@ -12,7 +12,7 @@ import (
 
 var (
 	remaining = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "azurerm_api_resource_request_left_count",
+		Name: "azurerm_api_resource_request_remaining_count",
 		Help: "The number of requests left for the resource type.",
 	})
 )
